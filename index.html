@@ -9,6 +9,7 @@
     <meta name="description" content="Autorregistro de Activación Conductual en base a valores - Herramienta para terapia psicológica">
     <meta name="author" content="Emilio Neva">
     <meta name="theme-color" content="#667eea">
+    <meta name="color-scheme" content="light">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ActConductual">
@@ -130,6 +131,8 @@
             border-radius: 6px;
             font-size: 14px;
             transition: border-color 0.3s;
+            background-color: white !important;
+            color: #333 !important;
         }
 
         input[type="text"]:focus, textarea:focus {
@@ -165,6 +168,8 @@
             border-radius: 6px;
             font-size: 16px;
             font-weight: 600;
+            background-color: white !important;
+            color: #333 !important;
         }
 
         .delete-btn {
@@ -223,6 +228,10 @@
             border-radius: 4px;
             text-align: center;
             font-size: 14px;
+            background-color: white !important;
+            color: #333 !important;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         input[type="number"]:focus {
@@ -299,6 +308,41 @@
 
         .export-btn:hover {
             background: #059669;
+        }
+
+        .install-prompt {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .install-prompt.show {
+            display: block;
+        }
+
+        .install-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .install-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .install-btn:active {
+            transform: scale(0.95);
         }
 
         @media (max-width: 768px) {
@@ -396,7 +440,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>Anexo 2.- Autorregistro de Activación Conductual en base a valores</h1>
+        <h1>Autorregistro de Activación Conductual en base a valores</h1>
+
+        <!-- Banner de instalación -->
+        <div id="install-prompt" class="install-prompt">
+            <p style="margin: 0 0 5px 0; font-weight: 600;">📱 Instala esta app en tu móvil</p>
+            <p style="margin: 0 0 10px 0; font-size: 13px;">Accede más rápido y úsala sin conexión</p>
+            <button id="install-button" class="install-btn">⬇️ Instalar App</button>
+        </div>
 
         <div class="week-navigation">
             <div class="week-selector">
@@ -844,7 +895,7 @@
 
                 return `
                     <div class="week-section">
-                        <h1>Anexo 2.- Autorregistro de Activación Conductual en base a valores</h1>
+                        <h1>Autorregistro de Activación Conductual en base a valores</h1>
                         <div class="week-title">${formatWeekRange(week.startDate)}</div>
 
                         <div class="valor-section">
@@ -876,6 +927,42 @@
 
         // Inicializar la aplicación
         initApp();
+
+        // Manejo de instalación PWA
+        let deferredPrompt;
+        const installPrompt = document.getElementById('install-prompt');
+        const installButton = document.getElementById('install-button');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevenir que Chrome muestre su propio banner
+            e.preventDefault();
+            // Guardar el evento para usarlo después
+            deferredPrompt = e;
+            // Mostrar nuestro banner personalizado
+            installPrompt.classList.add('show');
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                return;
+            }
+            // Mostrar el prompt de instalación
+            deferredPrompt.prompt();
+            // Esperar la respuesta del usuario
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
+            // Limpiar el prompt
+            deferredPrompt = null;
+            // Ocultar el banner
+            installPrompt.classList.remove('show');
+        });
+
+        // Detectar si la app ya está instalada
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA instalada exitosamente');
+            installPrompt.classList.remove('show');
+            deferredPrompt = null;
+        });
 
         // Registrar Service Worker para PWA
         if ('serviceWorker' in navigator) {
