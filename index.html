@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autorregistro de Activación Conductual</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Autorregistro de Activación Conductual en base a valores - Herramienta para terapia psicológica">
+    <meta name="author" content="Emilio Neva">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ActConductual">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Icons para iOS -->
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .week-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .week-selector {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .week-selector select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .week-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .week-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+
+        .week-btn:hover {
+            background: #5568d3;
+        }
+
+        .week-btn.danger {
+            background: #ef4444;
+        }
+
+        .week-btn.danger:hover {
+            background: #dc2626;
+        }
+
+        .week-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .valor-section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .intro-text {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .action-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+
+        .action-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .action-name {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 13px;
+            border: 1px solid #ddd;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        td.label-cell {
+            background: #f0f0f0;
+            font-weight: 600;
+            text-align: left;
+            padding-left: 12px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea.comentarios {
+            width: 100%;
+            min-height: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 13px;
+            overflow-y: hidden;
+            font-family: inherit;
+        }
+
+        .add-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+
+        .add-btn:hover {
+            background: #5568d3;
+        }
+
+        .autosave-info {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .export-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .export-btn:hover {
+            background: #059669;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 6px 4px;
+            }
+        }
+
+        .week-section {
+            margin-bottom: 40px;
+            page-break-after: always;
+        }
+
+        .week-section:last-child {
+            page-break-after: auto;
+        }
+
+        .week-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        #print-container {
+            display: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                display: none;
+            }
+
+            #print-container {
+                display: block !important;
+                max-width: 100%;
+                padding: 20px;
+            }
+
+            .add-btn, .delete-btn, .export-section, .week-navigation, .autosave-info {
+                display: none;
+            }
+
+            textarea.comentarios {
+                border: none;
+                overflow: visible;
+                height: auto;
+                resize: none;
+                page-break-inside: avoid;
+                white-space: pre-wrap;
+            }
+
+            .action-card {
+                page-break-inside: avoid;
+            }
+
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            .week-section {
+                page-break-after: always;
+            }
+
+            .week-section:last-child {
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Anexo 2.- Autorregistro de Activación Conductual en base a valores</h1>
+
+        <div class="week-navigation">
+            <div class="week-selector">
+                <select id="week-selector" onchange="changeWeek()">
+                    <!-- Las opciones se generarán dinámicamente -->
+                </select>
+            </div>
+            <div class="week-buttons">
+                <button class="week-btn" onclick="addNewWeek()">➕ Nueva Semana</button>
+                <button class="week-btn danger" onclick="deleteWeek()">🗑️ Eliminar Semana</button>
+            </div>
+        </div>
+
+        <div class="valor-section">
+            <label>Valor:</label>
+            <input type="text" id="valor" placeholder="Escribe el valor que guiará tus acciones esta semana">
+        </div>
+
+        <p class="intro-text">Esta semana programo las siguientes acciones:</p>
+
+        <div id="actions-container"></div>
+
+        <button class="add-btn" onclick="addAction()">
+            <span>➕</span> Agregar Acción
+        </button>
+
+        <div class="export-section">
+            <button class="export-btn" onclick="exportBackup()">📥 Exportar Backup</button>
+            <button class="export-btn" onclick="importBackup()">📤 Importar Backup</button>
+            <button class="export-btn" onclick="printAllWeeks()">🖨️ Imprimir Todas las Semanas</button>
+        </div>
+
+        <p class="autosave-info">
+            ✓ Tus cambios se guardan automáticamente
+        </p>
+
+        <p class="footer-note">
+            * Evalúa cada día del 0 al 10 el placer experimentado y la sensación de logro al realizar cada acción
+        </p>
+    </div>
+
+    <!-- Contenedor para impresión de todas las semanas -->
+    <div id="print-container"></div>
+
+    <script>
+        let weeks = [];
+        let currentWeekId = null;
+        let weekCounter = 1;
+        let actionCounter = 1;
+
+        function initApp() {
+            // Cargar datos guardados si existen
+            const savedData = localStorage.getItem('activacionConductual');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+
+                // Migrar datos antiguos al nuevo formato si es necesario
+                if (data.actions && !data.weeks) {
+                    // Formato antiguo, migrar
+                    weeks = [{
+                        id: 1,
+                        startDate: getMonday(new Date()),
+                        valor: data.valor || '',
+                        actions: data.actions || []
+                    }];
+                    currentWeekId = 1;
+                    weekCounter = 2;
+                    actionCounter = data.actionCounter || 1;
+                } else {
+                    // Formato nuevo
+                    weeks = data.weeks || [];
+                    currentWeekId = data.currentWeekId || null;
+                    weekCounter = data.weekCounter || 1;
+                    actionCounter = data.actionCounter || 1;
+                }
+            }
+
+            // Si no hay semanas, crear una por defecto
+            if (weeks.length === 0) {
+                weeks.push(createNewWeek());
+                currentWeekId = weeks[0].id;
+            }
+
+            // Si currentWeekId no está establecido o no es válido, usar la primera semana
+            if (!currentWeekId || !weeks.find(w => w.id === currentWeekId)) {
+                currentWeekId = weeks[0].id;
+            }
+
+            renderWeekSelector();
+            loadCurrentWeek();
+            autoSave();
+        }
+
+        function getMonday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            d.setDate(diff);
+            return d.toISOString().split('T')[0];
+        }
+
+        function formatWeekRange(startDate) {
+            const start = new Date(startDate);
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+
+            const formatDate = (d) => {
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}/${month}/${year}`;
+            };
+
+            return `Semana del ${formatDate(start)} al ${formatDate(end)}`;
+        }
+
+        function createNewWeek() {
+            return {
+                id: weekCounter++,
+                startDate: getMonday(new Date()),
+                valor: '',
+                actions: [createNewAction()]
+            };
+        }
+
+        function createNewAction() {
+            return {
+                id: actionCounter++,
+                name: `Acción ${actionCounter - 1}`,
+                placer: { L: '', M: '', X: '', J: '', V: '', S: '', D: '' },
+                logro: { L: '', M: '', X: '', J: '', V: '', S: '', D: '' },
+                comentarios: ''
+            };
+        }
+
+        function getCurrentWeek() {
+            return weeks.find(w => w.id === currentWeekId);
+        }
+
+        function addAction() {
+            const week = getCurrentWeek();
+            if (week) {
+                week.actions.push(createNewAction());
+                renderActions();
+                autoSave();
+            }
+        }
+
+        function removeAction(id) {
+            const week = getCurrentWeek();
+            if (week && week.actions.length > 1) {
+                week.actions = week.actions.filter(a => a.id !== id);
+                renderActions();
+                autoSave();
+            }
+        }
+
+        function addNewWeek() {
+            const newWeek = createNewWeek();
+            weeks.push(newWeek);
+            currentWeekId = newWeek.id;
+            renderWeekSelector();
+            loadCurrentWeek();
+            autoSave();
+        }
+
+        function deleteWeek() {
+            if (weeks.length <= 1) {
+                alert('No puedes eliminar la última semana');
+                return;
+            }
+
+            if (confirm('¿Estás seguro de que quieres eliminar esta semana?')) {
+                weeks = weeks.filter(w => w.id !== currentWeekId);
+                currentWeekId = weeks[0].id;
+                renderWeekSelector();
+                loadCurrentWeek();
+                autoSave();
+            }
+        }
+
+        function changeWeek() {
+            const selector = document.getElementById('week-selector');
+            currentWeekId = parseInt(selector.value);
+            loadCurrentWeek();
+            autoSave();
+        }
+
+        function renderWeekSelector() {
+            const selector = document.getElementById('week-selector');
+            // Ordenar semanas por fecha de inicio (más reciente primero)
+            const sortedWeeks = [...weeks].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+            selector.innerHTML = sortedWeeks.map(week =>
+                `<option value="${week.id}" ${week.id === currentWeekId ? 'selected' : ''}>
+                    ${formatWeekRange(week.startDate)}
+                </option>`
+            ).join('');
+        }
+
+        function loadCurrentWeek() {
+            const week = getCurrentWeek();
+            if (week) {
+                document.getElementById('valor').value = week.valor || '';
+                renderActions();
+            }
+        }
+
+        function autoResizeTextarea(element) {
+            element.style.height = 'auto';
+            element.style.height = element.scrollHeight + 'px';
+        }
+
+        function renderActions() {
+            const week = getCurrentWeek();
+            if (!week) return;
+
+            const container = document.getElementById('actions-container');
+            const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+            container.innerHTML = week.actions.map(action => `
+                <div class="action-card">
+                    <div class="action-header">
+                        <input type="text" 
+                               class="action-name" 
+                               value="${action.name}" 
+                               onchange="updateActionName(${action.id}, this.value)">
+                        ${week.actions.length > 1 ? `
+                            <button class="delete-btn" onclick="removeAction(${action.id})">🗑️ Eliminar</button>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Evaluación</th>
+                                    ${days.map(day => `<th>${day}</th>`).join('')}
+                                    <th>Comentarios (barreras)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="label-cell">Placer (0-10)</td>
+                                    ${days.map(day => `
+                                        <td>
+                                            <input type="number" 
+                                                   min="0" 
+                                                   max="10" 
+                                                   value="${action.placer[day]}"
+                                                   onchange="updateValue(${action.id}, 'placer', '${day}', this.value)">
+                                        </td>
+                                    `).join('')}
+                                    <td rowspan="2">
+                                        <textarea class="comentarios"
+                                                  onchange="updateComentarios(${action.id}, this.value)"
+                                                  oninput="autoResizeTextarea(this)"
+                                                  placeholder="Escribe aquí las barreras...">${action.comentarios}</textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Sensación de logro (0-10)</td>
+                                    ${days.map(day => `
+                                        <td>
+                                            <input type="number" 
+                                                   min="0" 
+                                                   max="10" 
+                                                   value="${action.logro[day]}"
+                                                   onchange="updateValue(${action.id}, 'logro', '${day}', this.value)">
+                                        </td>
+                                    `).join('')}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `).join('');
+
+            // Aplicar auto-resize a todos los textareas después de renderizar
+            setTimeout(() => {
+                document.querySelectorAll('.comentarios').forEach(textarea => {
+                    autoResizeTextarea(textarea);
+                });
+            }, 0);
+        }
+
+        function updateActionName(id, name) {
+            const week = getCurrentWeek();
+            if (week) {
+                const action = week.actions.find(a => a.id === id);
+                if (action) {
+                    action.name = name;
+                    autoSave();
+                }
+            }
+        }
+
+        function updateValue(id, type, day, value) {
+            const week = getCurrentWeek();
+            if (week) {
+                const action = week.actions.find(a => a.id === id);
+                if (action) {
+                    action[type][day] = value;
+                    autoSave();
+                }
+            }
+        }
+
+        function updateComentarios(id, value) {
+            const week = getCurrentWeek();
+            if (week) {
+                const action = week.actions.find(a => a.id === id);
+                if (action) {
+                    action.comentarios = value;
+                    autoSave();
+                }
+            }
+        }
+
+        function updateValor() {
+            const week = getCurrentWeek();
+            if (week) {
+                week.valor = document.getElementById('valor').value;
+                autoSave();
+            }
+        }
+
+        function autoSave() {
+            const data = {
+                weeks: weeks,
+                currentWeekId: currentWeekId,
+                weekCounter: weekCounter,
+                actionCounter: actionCounter
+            };
+            localStorage.setItem('activacionConductual', JSON.stringify(data));
+        }
+
+        function exportBackup() {
+            const data = {
+                weeks: weeks,
+                currentWeekId: currentWeekId,
+                weekCounter: weekCounter,
+                actionCounter: actionCounter,
+                fecha: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `activacion-conductual-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('✅ Backup exportado correctamente a tu carpeta de Descargas');
+        }
+
+        function importBackup() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+
+                        // Migrar datos antiguos si es necesario
+                        if (data.actions && !data.weeks) {
+                            weeks = [{
+                                id: 1,
+                                startDate: getMonday(new Date()),
+                                valor: data.valor || '',
+                                actions: data.actions || []
+                            }];
+                            currentWeekId = 1;
+                            weekCounter = 2;
+                            actionCounter = data.actionCounter || 1;
+                        } else {
+                            weeks = data.weeks || [];
+                            currentWeekId = data.currentWeekId || (weeks.length > 0 ? weeks[0].id : null);
+                            weekCounter = data.weekCounter || 1;
+                            actionCounter = data.actionCounter || 1;
+                        }
+
+                        renderWeekSelector();
+                        loadCurrentWeek();
+                        autoSave();
+                        alert('✅ Backup importado correctamente');
+                    } catch (error) {
+                        alert('❌ Error al importar el backup. Verifica que el archivo sea válido.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function printAllWeeks() {
+            const printContainer = document.getElementById('print-container');
+            const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+            // Ordenar semanas por fecha (más antigua primero para el reporte)
+            const sortedWeeks = [...weeks].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+            // Generar HTML para todas las semanas
+            const allWeeksHTML = sortedWeeks.map(week => {
+                const actionsHTML = week.actions.map(action => `
+                    <div class="action-card">
+                        <div class="action-header">
+                            <div class="action-name">${action.name}</div>
+                        </div>
+
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Evaluación</th>
+                                        ${days.map(day => `<th>${day}</th>`).join('')}
+                                        <th>Comentarios (barreras)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="label-cell">Placer (0-10)</td>
+                                        ${days.map(day => `
+                                            <td>${action.placer[day] || ''}</td>
+                                        `).join('')}
+                                        <td rowspan="2">
+                                            <textarea class="comentarios" readonly>${action.comentarios}</textarea>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-cell">Sensación de logro (0-10)</td>
+                                        ${days.map(day => `
+                                            <td>${action.logro[day] || ''}</td>
+                                        `).join('')}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="week-section">
+                        <h1>Anexo 2.- Autorregistro de Activación Conductual en base a valores</h1>
+                        <div class="week-title">${formatWeekRange(week.startDate)}</div>
+
+                        <div class="valor-section">
+                            <label>Valor:</label>
+                            <div style="padding: 10px; background: #f9f9f9; border-radius: 6px; margin-bottom: 15px;">
+                                ${week.valor || '(Sin especificar)'}
+                            </div>
+                        </div>
+
+                        <p class="intro-text">Esta semana programo las siguientes acciones:</p>
+
+                        ${actionsHTML}
+
+                        <p class="footer-note">
+                            * Evalúa cada día del 0 al 10 el placer experimentado y la sensación de logro al realizar cada acción
+                        </p>
+                    </div>
+                `;
+            }).join('');
+
+            printContainer.innerHTML = allWeeksHTML;
+
+            // Imprimir
+            window.print();
+        }
+
+        // Auto-guardar al cambiar el valor
+        document.getElementById('valor').addEventListener('input', updateValor);
+
+        // Inicializar la aplicación
+        initApp();
+
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/behavioral-activation/service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado con éxito:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('Error al registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

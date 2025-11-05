@@ -1,0 +1,18 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporales
+*.tmp
+*.bak
+*.log
+
+# No ignorar los iconos cuando estén listos
+# (por defecto se suben todos los PNG)
