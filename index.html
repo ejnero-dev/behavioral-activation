@@ -345,13 +345,17 @@
             transform: scale(0.95);
         }
 
+        .comentarios-mobile {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
             }
 
             h1 {
-                font-size: 20px;
+                font-size: 18px;
             }
 
             table {
@@ -360,6 +364,38 @@
 
             th, td {
                 padding: 6px 4px;
+            }
+
+            /* Ocultar columna de comentarios en móvil */
+            th.comentarios-col,
+            td.comentarios-col {
+                display: none;
+            }
+
+            /* Mostrar comentarios debajo de la tabla */
+            .comentarios-mobile {
+                display: block;
+                margin-top: 15px;
+            }
+
+            .comentarios-mobile label {
+                display: block;
+                font-weight: 600;
+                color: #555;
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+
+            .comentarios-mobile textarea {
+                width: 100%;
+                min-height: 100px;
+                padding: 12px;
+                border: 2px solid #e0e0e0;
+                border-radius: 6px;
+                font-size: 14px;
+                background-color: white !important;
+                color: #333 !important;
+                font-family: inherit;
             }
         }
 
@@ -671,22 +707,22 @@
             container.innerHTML = week.actions.map(action => `
                 <div class="action-card">
                     <div class="action-header">
-                        <input type="text" 
-                               class="action-name" 
-                               value="${action.name}" 
+                        <input type="text"
+                               class="action-name"
+                               value="${action.name}"
                                onchange="updateActionName(${action.id}, this.value)">
                         ${week.actions.length > 1 ? `
                             <button class="delete-btn" onclick="removeAction(${action.id})">🗑️ Eliminar</button>
                         ` : ''}
                     </div>
-                    
+
                     <div class="table-container">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Evaluación</th>
                                     ${days.map(day => `<th>${day}</th>`).join('')}
-                                    <th>Comentarios (barreras)</th>
+                                    <th class="comentarios-col">Comentarios (barreras)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -694,14 +730,14 @@
                                     <td class="label-cell">Placer (0-10)</td>
                                     ${days.map(day => `
                                         <td>
-                                            <input type="number" 
-                                                   min="0" 
-                                                   max="10" 
+                                            <input type="number"
+                                                   min="0"
+                                                   max="10"
                                                    value="${action.placer[day]}"
                                                    onchange="updateValue(${action.id}, 'placer', '${day}', this.value)">
                                         </td>
                                     `).join('')}
-                                    <td rowspan="2">
+                                    <td class="comentarios-col" rowspan="2">
                                         <textarea class="comentarios"
                                                   onchange="updateComentarios(${action.id}, this.value)"
                                                   oninput="autoResizeTextarea(this)"
@@ -712,9 +748,9 @@
                                     <td class="label-cell">Sensación de logro (0-10)</td>
                                     ${days.map(day => `
                                         <td>
-                                            <input type="number" 
-                                                   min="0" 
-                                                   max="10" 
+                                            <input type="number"
+                                                   min="0"
+                                                   max="10"
                                                    value="${action.logro[day]}"
                                                    onchange="updateValue(${action.id}, 'logro', '${day}', this.value)">
                                         </td>
@@ -723,12 +759,20 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Comentarios para móvil (debajo de la tabla) -->
+                    <div class="comentarios-mobile">
+                        <label>Comentarios (barreras)</label>
+                        <textarea onchange="updateComentarios(${action.id}, this.value)"
+                                  oninput="autoResizeTextarea(this)"
+                                  placeholder="Escribe aquí las barreras...">${action.comentarios}</textarea>
+                    </div>
                 </div>
             `).join('');
 
             // Aplicar auto-resize a todos los textareas después de renderizar
             setTimeout(() => {
-                document.querySelectorAll('.comentarios').forEach(textarea => {
+                document.querySelectorAll('.comentarios, .comentarios-mobile textarea').forEach(textarea => {
                     autoResizeTextarea(textarea);
                 });
             }, 0);
