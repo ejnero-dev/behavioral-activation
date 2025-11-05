@@ -223,20 +223,23 @@
 
         input[type="number"] {
             width: 100%;
-            padding: 6px;
+            padding: 8px 4px;
             border: 1px solid #ddd;
             border-radius: 4px;
             text-align: center;
-            font-size: 14px;
+            font-size: 16px;
             background-color: white !important;
             color: #333 !important;
             -webkit-appearance: none;
             appearance: none;
+            min-height: 36px;
+            box-sizing: border-box;
         }
 
         input[type="number"]:focus {
             outline: none;
             border-color: #667eea;
+            background-color: #f8f9ff !important;
         }
 
         textarea.comentarios {
@@ -363,7 +366,14 @@
             }
 
             th, td {
-                padding: 6px 4px;
+                padding: 4px 2px;
+            }
+
+            /* Inputs más grandes en móvil */
+            input[type="number"] {
+                padding: 10px 2px;
+                font-size: 18px;
+                min-height: 40px;
             }
 
             /* Ocultar columna de comentarios en móvil */
