@@ -502,7 +502,8 @@
                 </select>
             </div>
             <div class="week-buttons">
-                <button class="week-btn" onclick="addNewWeek()">➕ Nueva Semana</button>
+                <button class="week-btn" onclick="addNewWeek()">➕ Semana Siguiente</button>
+                <button class="week-btn" onclick="addPreviousWeek()">⬅️ Semana Anterior</button>
                 <button class="week-btn danger" onclick="deleteWeek()">🗑️ Eliminar Semana</button>
             </div>
         </div>
@@ -610,6 +611,43 @@
             return `Semana del ${formatDate(start)} al ${formatDate(end)}`;
         }
 
+        function weekExists(startDate) {
+            return weeks.some(w => w.startDate === startDate);
+        }
+
+        function getNextWeekDate() {
+            if (weeks.length === 0) {
+                return getMonday(new Date());
+            }
+            // Encontrar la semana más reciente
+            const mostRecentWeek = weeks.reduce((latest, week) => {
+                return new Date(week.startDate) > new Date(latest.startDate) ? week : latest;
+            });
+            // Calcular siguiente lunes (+ 7 días)
+            const nextDate = new Date(mostRecentWeek.startDate);
+            nextDate.setDate(nextDate.getDate() + 7);
+            return nextDate.toISOString().split('T')[0];
+        }
+
+        function getPreviousWeekDate() {
+            if (weeks.length === 0) {
+                // Si no hay semanas, crear una semana atrás desde hoy
+                const prevDate = new Date();
+                const day = prevDate.getDay();
+                const diff = prevDate.getDate() - day + (day === 0 ? -6 : 1) - 7;
+                prevDate.setDate(diff);
+                return prevDate.toISOString().split('T')[0];
+            }
+            // Encontrar la semana más antigua
+            const oldestWeek = weeks.reduce((oldest, week) => {
+                return new Date(week.startDate) < new Date(oldest.startDate) ? week : oldest;
+            });
+            // Calcular lunes anterior (- 7 días)
+            const prevDate = new Date(oldestWeek.startDate);
+            prevDate.setDate(prevDate.getDate() - 7);
+            return prevDate.toISOString().split('T')[0];
+        }
+
         function createNewWeek() {
             return {
                 id: weekCounter++,
@@ -652,7 +690,46 @@
         }
 
         function addNewWeek() {
-            const newWeek = createNewWeek();
+            const nextWeekDate = getNextWeekDate();
+
+            // Validar que no exista esa semana
+            if (weekExists(nextWeekDate)) {
+                const formattedRange = formatWeekRange(nextWeekDate);
+                alert(`⚠️ La semana "${formattedRange}" ya existe.\n\nNo se pueden crear semanas duplicadas.`);
+                return;
+            }
+
+            const newWeek = {
+                id: weekCounter++,
+                startDate: nextWeekDate,
+                valor: '',
+                actions: [createNewAction()]
+            };
+
+            weeks.push(newWeek);
+            currentWeekId = newWeek.id;
+            renderWeekSelector();
+            loadCurrentWeek();
+            autoSave();
+        }
+
+        function addPreviousWeek() {
+            const prevWeekDate = getPreviousWeekDate();
+
+            // Validar que no exista esa semana
+            if (weekExists(prevWeekDate)) {
+                const formattedRange = formatWeekRange(prevWeekDate);
+                alert(`⚠️ La semana "${formattedRange}" ya existe.\n\nNo se pueden crear semanas duplicadas.`);
+                return;
+            }
+
+            const newWeek = {
+                id: weekCounter++,
+                startDate: prevWeekDate,
+                valor: '',
+                actions: [createNewAction()]
+            };
+
             weeks.push(newWeek);
             currentWeekId = newWeek.id;
             renderWeekSelector();
