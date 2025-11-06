@@ -10,6 +10,7 @@
     <meta name="author" content="Emilio Neva">
     <meta name="theme-color" content="#667eea">
     <meta name="color-scheme" content="light">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ActConductual">
@@ -433,22 +434,13 @@
 
         .app-footer {
             margin-top: 40px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 30px 20px;
-        }
-
-        .app-footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 12px;
-            border-top: 3px solid #667eea;
-            padding: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
             text-align: center;
         }
 
         .privacy-notice {
-            background: #fff;
+            background: #f0fdf4;
             padding: 15px;
             border-radius: 8px;
             border-left: 4px solid #10b981;
@@ -532,11 +524,7 @@
 
             .app-footer {
                 margin-top: 30px;
-                padding: 20px 15px;
-            }
-
-            .app-footer-content {
-                padding: 20px 15px;
+                padding-top: 20px;
             }
 
             .privacy-notice {
@@ -648,11 +636,9 @@
         <p class="footer-note">
             * Evalúa cada día del 0 al 10 el placer experimentado y la sensación de logro al realizar cada acción
         </p>
-    </div>
 
-    <!-- Footer Profesional -->
-    <footer class="app-footer">
-        <div class="app-footer-content">
+        <!-- Footer Profesional -->
+        <footer class="app-footer">
             <div class="privacy-notice">
                 <span class="lock-icon">🔒</span>
                 <span>Tus datos nunca salen de tu dispositivo - Privacidad garantizada</span>
@@ -679,8 +665,8 @@
             <div class="footer-meta">
                 © 2025 Emilio Neva - <a href="https://github.com/ejnero-dev/behavioral-activation/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">Licencia MIT</a> - v1.0
             </div>
-        </div>
-    </footer>
+        </footer>
+    </div>
 
     <!-- Contenedor para impresión de todas las semanas -->
     <div id="print-container"></div>
