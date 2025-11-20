@@ -1,64 +1,58 @@
 #!/usr/bin/env python3
 """
 Script para generar iconos PWA desde una imagen
+Uso: python generate_icons.py [imagen_input] [directorio_output]
 """
 
-from PIL import Image
 import sys
+import os
+from PIL import Image
 
 def generate_icons(input_path, output_dir):
-    """
-    Genera iconos cuadrados de 192x192 y 512x512 desde una imagen
-    """
+    if not os.path.exists(input_path):
+        print(f"❌ Error: No se encuentra la imagen: {input_path}")
+        return
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"📁 Directorio creado: {output_dir}")
+
     print(f"📸 Abriendo imagen: {input_path}")
-
-    # Abrir imagen
     img = Image.open(input_path)
-    print(f"   Dimensiones originales: {img.size}")
 
-    # Obtener dimensiones
+    # Recortar a cuadrado si es necesario
     width, height = img.size
-
-    # Recortar a cuadrado (tomar el centro)
     if width != height:
         print("🔲 Recortando a formato cuadrado...")
-        # Usar la dimensión más pequeña
         size = min(width, height)
-
-        # Calcular coordenadas para centrar el recorte
         left = (width - size) // 2
         top = (height - size) // 2
-        right = left + size
-        bottom = top + size
+        img = img.crop((left, top, left + size, top + size))
 
-        img = img.crop((left, top, right, bottom))
-        print(f"   Nueva dimensión cuadrada: {img.size}")
-
-    # Generar icon-192.png
-    print("🎨 Generando icon-192.png...")
-    icon_192 = img.resize((192, 192), Image.Resampling.LANCZOS)
-    icon_192_path = f"{output_dir}/icon-192.png"
-    icon_192.save(icon_192_path, 'PNG', optimize=True)
-    print(f"   ✅ Guardado: {icon_192_path}")
-
-    # Generar icon-512.png
-    print("🎨 Generando icon-512.png...")
-    icon_512 = img.resize((512, 512), Image.Resampling.LANCZOS)
-    icon_512_path = f"{output_dir}/icon-512.png"
-    icon_512.save(icon_512_path, 'PNG', optimize=True)
-    print(f"   ✅ Guardado: {icon_512_path}")
-
-    print("\n🎉 ¡Iconos generados exitosamente!")
-    print(f"   📁 Ubicación: {output_dir}")
-    print("   📱 Ahora puedes desplegar tu PWA")
+    # Generar iconos
+    sizes = [192, 512]
+    for size in sizes:
+        filename = f"icon-{size}.png"
+        print(f"🎨 Generando {filename}...")
+        icon = img.resize((size, size), Image.Resampling.LANCZOS)
+        save_path = os.path.join(output_dir, filename)
+        icon.save(save_path, 'PNG', optimize=True)
+        print(f"   ✅ Guardado: {save_path}")
 
 if __name__ == "__main__":
-    input_image = "/mnt/c/Users/emilio/Downloads/Generated Image November 05, 2025 - 9_00PM.png"
-    output_directory = "/mnt/c/Users/emilio/Desktop/behavioral-activation/icons"
+    # Valores por defecto
+    input_image = "source_image.png" # Busca este archivo por defecto
+    output_directory = "icons"
+
+    # Permitir argumentos: python generate_icons.py mi_logo.jpg ./assets/icons
+    if len(sys.argv) > 1:
+        input_image = sys.argv[1]
+    if len(sys.argv) > 2:
+        output_directory = sys.argv[2]
 
     try:
         generate_icons(input_image, output_directory)
+    except ImportError:
+        print("❌ Error: Pillow no está instalado.\n💡 Ejecuta: pip install Pillow")
     except Exception as e:
-        print(f"❌ Error: {e}")
-        print("\n💡 Solución: Instala Pillow con: pip install Pillow")
-        sys.exit(1)
+        print(f"❌ Error inesperado: {e}")
