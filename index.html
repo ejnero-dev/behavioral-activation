@@ -761,12 +761,20 @@
             autoSave();
         }
 
+        // Formato fecha local YYYY-MM-DD (evita problemas de timezone con toISOString)
+        function formatLocalDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function getMonday(date) {
             const d = new Date(date);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             d.setDate(diff);
-            return d.toISOString().split('T')[0];
+            return formatLocalDate(d);
         }
 
         function formatWeekRange(startDate) {
@@ -799,7 +807,7 @@
             // Calcular siguiente lunes (+ 7 días)
             const nextDate = new Date(mostRecentWeek.startDate);
             nextDate.setDate(nextDate.getDate() + 7);
-            return nextDate.toISOString().split('T')[0];
+            return formatLocalDate(nextDate);
         }
 
         function getPreviousWeekDate() {
@@ -809,7 +817,7 @@
                 const day = prevDate.getDay();
                 const diff = prevDate.getDate() - day + (day === 0 ? -6 : 1) - 7;
                 prevDate.setDate(diff);
-                return prevDate.toISOString().split('T')[0];
+                return formatLocalDate(prevDate);
             }
             // Encontrar la semana más antigua
             const oldestWeek = weeks.reduce((oldest, week) => {
@@ -818,7 +826,7 @@
             // Calcular lunes anterior (- 7 días)
             const prevDate = new Date(oldestWeek.startDate);
             prevDate.setDate(prevDate.getDate() - 7);
-            return prevDate.toISOString().split('T')[0];
+            return formatLocalDate(prevDate);
         }
 
         function generateUUID() {
@@ -876,11 +884,17 @@
 
         function removeAction(id) {
             const week = getCurrentWeek();
-            if (week && week.actions.length > 1) {
-                week.actions = week.actions.filter(a => a.id !== id);
-                renderActions();
-                autoSave();
+            if (!week || week.actions.length <= 1) return;
+
+            const actionExists = week.actions.some(a => a.id === id);
+            if (!actionExists) {
+                console.warn('removeAction: acción no encontrada');
+                return;
             }
+
+            week.actions = week.actions.filter(a => a.id !== id);
+            renderActions();
+            autoSave();
         }
 
         function addNewWeek() {
@@ -894,7 +908,7 @@
             }
 
             const newWeek = {
-                id: weekCounter++,
+                id: generateUUID(),
                 startDate: nextWeekDate,
                 valor: '',
                 actions: [createNewAction()]
@@ -918,7 +932,7 @@
             }
 
             const newWeek = {
-                id: weekCounter++,
+                id: generateUUID(),
                 startDate: prevWeekDate,
                 valor: '',
                 actions: [createNewAction()]
@@ -938,8 +952,17 @@
             }
 
             if (confirm('¿Estás seguro de que quieres eliminar esta semana?')) {
-                weeks = weeks.filter(w => w.id !== currentWeekId);
-                currentWeekId = weeks[0].id;
+                const deletedId = currentWeekId;
+                weeks = weeks.filter(w => w.id !== deletedId);
+
+                // Seleccionar la semana más reciente
+                if (weeks.length > 0) {
+                    const mostRecent = weeks.reduce((latest, week) =>
+                        new Date(week.startDate) > new Date(latest.startDate) ? week : latest
+                    );
+                    currentWeekId = mostRecent.id;
+                }
+
                 renderWeekSelector();
                 loadCurrentWeek();
                 autoSave();
@@ -1073,6 +1096,25 @@
         }
 
         function updateValue(id, type, day, value) {
+            const validDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+            const validTypes = ['placer', 'logro'];
+
+            // Validar día y tipo
+            if (!validDays.includes(day) || !validTypes.includes(type)) {
+                console.warn('updateValue: día o tipo inválido');
+                return;
+            }
+
+            // Validar valor (vacío o número 0-10)
+            if (value !== '' && value !== null && value !== undefined) {
+                const numValue = parseInt(value, 10);
+                if (isNaN(numValue) || numValue < 0 || numValue > 10) {
+                    console.warn('updateValue: valor fuera de rango 0-10');
+                    return;
+                }
+                value = numValue;
+            }
+
             const week = getCurrentWeek();
             if (week) {
                 const action = week.actions.find(a => a.id === id);
@@ -1132,6 +1174,27 @@
             alert('✅ Backup exportado correctamente a tu carpeta de Descargas');
         }
 
+        // Validar estructura de una semana importada
+        function validateWeekStructure(week) {
+            // Validar campos requeridos
+            if (week.id === undefined || week.id === null) return false;
+            if (!week.startDate) return false;
+            if (!Array.isArray(week.actions)) return false;
+
+            // Validar formato de fecha (YYYY-MM-DD)
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(week.startDate)) return false;
+
+            // Validar acciones
+            for (const action of week.actions) {
+                if (action.id === undefined || action.id === null) return false;
+                if (typeof action.name !== 'string') return false;
+                if (!action.placer || typeof action.placer !== 'object') return false;
+                if (!action.logro || typeof action.logro !== 'object') return false;
+            }
+
+            return true;
+        }
+
         function importBackup() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -1150,15 +1213,22 @@
 
                         // Lógica de migración existente...
                         if (data.actions && !data.weeks) {
-                            // ... (tu código legacy existente)
+                            // Formato legacy (una sola semana)
+                            const newWeekId = generateUUID();
                             weeks = [{
-                                id: 1,
+                                id: newWeekId,
                                 startDate: getMonday(new Date()),
                                 valor: data.valor || '',
                                 actions: data.actions || []
                             }];
-                            currentWeekId = 1;
+                            currentWeekId = newWeekId;
                         } else {
+                            // Validar estructura de cada semana
+                            for (const week of data.weeks) {
+                                if (!validateWeekStructure(week)) {
+                                    throw new Error("Estructura de semana inválida");
+                                }
+                            }
                             weeks = data.weeks || [];
                             // Asegurar que si venían IDs numéricos antiguos, todo funcione
                             currentWeekId = data.currentWeekId || (weeks.length > 0 ? weeks[0].id : null);
