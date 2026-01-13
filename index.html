@@ -826,7 +826,18 @@
                 return crypto.randomUUID();
             }
             // Fallback para navegadores muy antiguos
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            return Date.now().toString(36) + Math.random().toString(36).slice(2);
+        }
+
+        // Sanitización de HTML para prevenir XSS
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function createNewWeek() {
@@ -979,10 +990,10 @@
                     <div class="action-header">
                         <input type="text"
                                class="action-name"
-                               value="${action.name}"
-                               onchange="updateActionName('${action.id}', this.value)">
+                               value="${escapeHtml(action.name)}"
+                               onchange="updateActionName('${escapeHtml(action.id)}', this.value)">
                         ${week.actions.length > 1 ? `
-                            <button class="delete-btn" onclick="removeAction('${action.id}')">🗑️ Eliminar</button>
+                            <button class="delete-btn" onclick="removeAction('${escapeHtml(action.id)}')">🗑️ Eliminar</button>
                         ` : ''}
                     </div>
 
@@ -1004,15 +1015,15 @@
                                                    min="0"
                                                    max="10"
                                                    aria-label="Placer ${day}"
-                                                   value="${action.placer[day]}"
-                                                   onchange="updateValue('${action.id}', 'placer', '${day}', this.value)">
+                                                   value="${escapeHtml(action.placer[day])}"
+                                                   onchange="updateValue('${escapeHtml(action.id)}', 'placer', '${day}', this.value)">
                                         </td>
                                     `).join('')}
                                     <td class="comentarios-col" rowspan="2">
                                         <textarea class="comentarios"
-                                                  onchange="updateComentarios('${action.id}', this.value)"
+                                                  onchange="updateComentarios('${escapeHtml(action.id)}', this.value)"
                                                   oninput="autoResizeTextarea(this)"
-                                                  placeholder="Escribe aquí las barreras...">${action.comentarios}</textarea>
+                                                  placeholder="Escribe aquí las barreras...">${escapeHtml(action.comentarios)}</textarea>
                                     </td>
                                 </tr>
                                 <tr>
@@ -1023,8 +1034,8 @@
                                                    min="0"
                                                    max="10"
                                                    aria-label="Logro ${day}"
-                                                   value="${action.logro[day]}"
-                                                   onchange="updateValue('${action.id}', 'logro', '${day}', this.value)">
+                                                   value="${escapeHtml(action.logro[day])}"
+                                                   onchange="updateValue('${escapeHtml(action.id)}', 'logro', '${day}', this.value)">
                                         </td>
                                     `).join('')}
                                 </tr>
@@ -1035,9 +1046,9 @@
                     <!-- Comentarios para móvil (debajo de la tabla) -->
                     <div class="comentarios-mobile">
                         <label>Comentarios (barreras)</label>
-                        <textarea onchange="updateComentarios('${action.id}', this.value)"
+                        <textarea onchange="updateComentarios('${escapeHtml(action.id)}', this.value)"
                                   oninput="autoResizeTextarea(this)"
-                                  placeholder="Escribe aquí las barreras...">${action.comentarios}</textarea>
+                                  placeholder="Escribe aquí las barreras...">${escapeHtml(action.comentarios)}</textarea>
                     </div>
                 </div>
             `).join('');
@@ -1179,7 +1190,7 @@
                 const actionsHTML = week.actions.map(action => `
                     <div class="action-card">
                         <div class="action-header">
-                            <div class="action-name">${action.name}</div>
+                            <div class="action-name">${escapeHtml(action.name)}</div>
                         </div>
 
                         <div class="table-container">
@@ -1195,16 +1206,16 @@
                                     <tr>
                                         <td class="label-cell">Placer (0-10)</td>
                                         ${days.map(day => `
-                                            <td>${action.placer[day] || ''}</td>
+                                            <td>${escapeHtml(action.placer[day]) || ''}</td>
                                         `).join('')}
                                         <td rowspan="2">
-                                            <textarea class="comentarios" readonly>${action.comentarios}</textarea>
+                                            <textarea class="comentarios" readonly>${escapeHtml(action.comentarios)}</textarea>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="label-cell">Sensación de logro (0-10)</td>
                                         ${days.map(day => `
-                                            <td>${action.logro[day] || ''}</td>
+                                            <td>${escapeHtml(action.logro[day]) || ''}</td>
                                         `).join('')}
                                     </tr>
                                 </tbody>
@@ -1221,7 +1232,7 @@
                         <div class="valor-section">
                             <label>Valor:</label>
                             <div style="padding: 10px; background: #f9f9f9; border-radius: 6px; margin-bottom: 15px;">
-                                ${week.valor || '(Sin especificar)'}
+                                ${escapeHtml(week.valor) || '(Sin especificar)'}
                             </div>
                         </div>
 
@@ -1302,8 +1313,8 @@
                 pointsLogro += `${x},${yL} `;
 
                 // Círculos para los puntos (tooltip title nativo)
-                circlesHtml += `<circle cx="${x}" cy="${yP}" r="2" fill="#667eea"><title>Semana ${pt.date}: Placer ${pt.placer}</title></circle>`;
-                circlesHtml += `<circle cx="${x}" cy="${yL}" r="2" fill="#10b981"><title>Semana ${pt.date}: Logro ${pt.logro}</title></circle>`;
+                circlesHtml += `<circle cx="${x}" cy="${yP}" r="2" fill="#667eea"><title>Semana ${escapeHtml(pt.date)}: Placer ${escapeHtml(pt.placer)}</title></circle>`;
+                circlesHtml += `<circle cx="${x}" cy="${yL}" r="2" fill="#10b981"><title>Semana ${escapeHtml(pt.date)}: Logro ${escapeHtml(pt.logro)}</title></circle>`;
             });
 
             const svgContent = `
@@ -1382,6 +1393,15 @@
                     });
             });
         }
+
+        // Detección de estado de conexión
+        window.addEventListener('online', () => {
+            console.log('Conexión restaurada');
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('Sin conexión - modo offline activo');
+        });
     </script>
 </body>
 

@@ -2,7 +2,7 @@
   "name": "Activación Conductual",
   "short_name": "ActConductual",
   "description": "Autorregistro de Activación Conductual en base a valores",
-  "start_url": "/behavioral-activation/",
+  "start_url": "/behavioral-activation/index.html",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",

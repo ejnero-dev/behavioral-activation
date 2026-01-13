@@ -1,8 +1,10 @@
-const CACHE_NAME = 'activacion-conductual-v8';
+const CACHE_NAME = 'activacion-conductual-v9';
 const urlsToCache = [
   '/behavioral-activation/',
   '/behavioral-activation/index.html',
-  '/behavioral-activation/manifest.json'
+  '/behavioral-activation/manifest.json',
+  '/behavioral-activation/icons/icon-192.png',
+  '/behavioral-activation/icons/icon-512.png'
 ];
 
 // Instalación del Service Worker
