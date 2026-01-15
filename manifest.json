@@ -4,8 +4,8 @@
   "description": "Autorregistro de Activación Conductual en base a valores",
   "start_url": "/behavioral-activation/",
   "display": "standalone",
-  "background_color": "#667eea",
-  "theme_color": "#667eea",
+  "background_color": "#7C9885",
+  "theme_color": "#7C9885",
   "orientation": "portrait-primary",
   "icons": [
     {
