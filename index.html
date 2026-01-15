@@ -538,6 +538,26 @@
             }
         }
 
+        /* Indicador offline */
+        .offline-mode::before {
+            content: '📴 Sin conexión - Los cambios se guardan localmente';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f59e0b;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 9999;
+        }
+
+        .offline-mode .container {
+            margin-top: 40px;
+        }
+
         @media print {
             body {
                 background: white;
@@ -1044,6 +1064,7 @@
                                     `).join('')}
                                     <td class="comentarios-col" rowspan="2">
                                         <textarea class="comentarios"
+                                                  data-action-id="${escapeHtml(action.id)}"
                                                   onchange="updateComentarios('${escapeHtml(action.id)}', this.value)"
                                                   oninput="autoResizeTextarea(this)"
                                                   placeholder="Escribe aquí las barreras...">${escapeHtml(action.comentarios)}</textarea>
@@ -1069,7 +1090,8 @@
                     <!-- Comentarios para móvil (debajo de la tabla) -->
                     <div class="comentarios-mobile">
                         <label>Comentarios (barreras)</label>
-                        <textarea onchange="updateComentarios('${escapeHtml(action.id)}', this.value)"
+                        <textarea data-action-id="${escapeHtml(action.id)}"
+                                  onchange="updateComentarios('${escapeHtml(action.id)}', this.value)"
                                   oninput="autoResizeTextarea(this)"
                                   placeholder="Escribe aquí las barreras...">${escapeHtml(action.comentarios)}</textarea>
                     </div>
@@ -1131,6 +1153,13 @@
                 const action = week.actions.find(a => a.id === id);
                 if (action) {
                     action.comentarios = value;
+                    // Sincronizar ambos textareas (móvil y desktop)
+                    document.querySelectorAll(`textarea[data-action-id="${id}"]`).forEach(ta => {
+                        if (ta.value !== value) {
+                            ta.value = value;
+                            autoResizeTextarea(ta);
+                        }
+                    });
                     autoSave();
                 }
             }
@@ -1176,6 +1205,8 @@
 
         // Validar estructura de una semana importada
         function validateWeekStructure(week) {
+            const validDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
             // Validar campos requeridos
             if (week.id === undefined || week.id === null) return false;
             if (!week.startDate) return false;
@@ -1184,12 +1215,24 @@
             // Validar formato de fecha (YYYY-MM-DD)
             if (!/^\d{4}-\d{2}-\d{2}$/.test(week.startDate)) return false;
 
+            // Validar valor (string con límite)
+            if (week.valor && (typeof week.valor !== 'string' || week.valor.length > 1000)) return false;
+
             // Validar acciones
             for (const action of week.actions) {
                 if (action.id === undefined || action.id === null) return false;
-                if (typeof action.name !== 'string') return false;
+                if (typeof action.name !== 'string' || action.name.length > 500) return false;
                 if (!action.placer || typeof action.placer !== 'object') return false;
                 if (!action.logro || typeof action.logro !== 'object') return false;
+                if (action.comentarios && (typeof action.comentarios !== 'string' || action.comentarios.length > 5000)) return false;
+
+                // Validar que solo existan días válidos
+                for (const day of Object.keys(action.placer)) {
+                    if (!validDays.includes(day)) return false;
+                }
+                for (const day of Object.keys(action.logro)) {
+                    if (!validDays.includes(day)) return false;
+                }
             }
 
             return true;
@@ -1466,11 +1509,13 @@
 
         // Detección de estado de conexión
         window.addEventListener('online', () => {
+            document.body.classList.remove('offline-mode');
             console.log('Conexión restaurada');
         });
 
         window.addEventListener('offline', () => {
-            console.log('Sin conexión - modo offline activo');
+            document.body.classList.add('offline-mode');
+            console.log('Sin conexión - modo offline');
         });
     </script>
 </body>
