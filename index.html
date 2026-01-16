@@ -1369,7 +1369,7 @@
         }
 
         function getCurrentWeek() {
-            return weeks.find(w => w.id === currentWeekId);
+            return weeks.find(w => String(w.id) === String(currentWeekId));
         }
 
         function addAction() {
@@ -1481,7 +1481,7 @@
             const sortedWeeks = [...weeks].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
             selector.innerHTML = sortedWeeks.map(week =>
-                `<option value="${week.id}" ${week.id === currentWeekId ? 'selected' : ''}>
+                `<option value="${week.id}" ${String(week.id) === String(currentWeekId) ? 'selected' : ''}>
                     ${formatWeekRange(week.startDate)}
                 </option>`
             ).join('');
