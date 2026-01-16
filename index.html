@@ -1001,6 +1001,9 @@
             .action-card {
                 page-break-inside: avoid;
                 border-left-color: var(--sage-primary) !important;
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
             }
 
             table {
@@ -1219,11 +1222,9 @@
             if (weeks.length === 0) {
                 weeks.push(createNewWeek());
                 currentWeekId = weeks[0].id;
-            }
-
-            // Si currentWeekId no está establecido o no es válido, usar la primera semana
-            if (!currentWeekId || !weeks.find(w => w.id === currentWeekId)) {
-                currentWeekId = weeks[0].id;
+            } else {
+                // Siempre navegar a la semana actual (o crearla si no existe)
+                currentWeekId = findOrCreateCurrentWeek();
             }
 
             renderWeekSelector();
@@ -1337,6 +1338,34 @@
                 logro: { L: '', M: '', X: '', J: '', V: '', S: '', D: '' },
                 comentarios: ''
             };
+        }
+
+        function findOrCreateCurrentWeek() {
+            const todayMonday = getMonday(new Date());
+
+            // Buscar semana existente para la fecha actual
+            const existingWeek = weeks.find(w => w.startDate === todayMonday);
+
+            if (existingWeek) {
+                return existingWeek.id;
+            }
+
+            // No existe, crear nueva semana
+            const newWeek = {
+                id: generateUUID(),
+                startDate: todayMonday,
+                valor: '',
+                actions: [{
+                    id: generateUUID(),
+                    name: 'Acción 1',
+                    placer: { L: '', M: '', X: '', J: '', V: '', S: '', D: '' },
+                    logro: { L: '', M: '', X: '', J: '', V: '', S: '', D: '' },
+                    comentarios: ''
+                }]
+            };
+
+            weeks.push(newWeek);
+            return newWeek.id;
         }
 
         function getCurrentWeek() {
@@ -1812,8 +1841,12 @@
 
             printContainer.innerHTML = allWeeksHTML;
 
-            // Imprimir
-            window.print();
+            // Esperar a que el DOM se renderice completamente antes de imprimir
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    window.print();
+                });
+            });
         }
 
         // Auto-guardar al cambiar el valor
