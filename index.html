@@ -475,6 +475,19 @@
             transform: scale(1.02);
         }
 
+        /* Input validation feedback */
+        input[type="number"].input-invalid {
+            border-color: var(--terracotta) !important;
+            background-color: #FEF2F2 !important;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
         /* Textarea in table */
         textarea.comentarios {
             width: 100%;
@@ -695,6 +708,65 @@
                 background-color: white !important;
                 color: #333 !important;
                 font-family: inherit;
+            }
+        }
+
+        /* Extra small screens (480px and below) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 15px;
+            }
+
+            table {
+                font-size: 10px;
+            }
+
+            th, td {
+                padding: 3px 2px;
+            }
+
+            td.label-cell {
+                font-size: 9px;
+                max-width: 55px;
+            }
+
+            input[type="number"] {
+                font-size: 14px;
+                min-height: 34px;
+                padding: 6px 2px;
+            }
+
+            .action-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-name {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+
+            .delete-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .week-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .week-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .week-selector {
+                min-width: 100%;
             }
         }
 
@@ -1075,8 +1147,8 @@
         </button>
 
         <div class="export-section">
-            <button class="export-btn" onclick="exportBackup()">📥 Exportar Backup</button>
-            <button class="export-btn" onclick="importBackup()">📤 Importar Backup</button>
+            <button class="export-btn" onclick="exportBackup()">📤 Exportar Backup</button>
+            <button class="export-btn" onclick="importBackup()">📥 Importar Backup</button>
             <button class="export-btn" onclick="printAllWeeks()">🖨️ Imprimir Todas las Semanas</button>
             <button class="export-btn" onclick="showStats()">📊 Ver Progreso</button>
         </div>
@@ -1536,9 +1608,10 @@
                                             <input type="number"
                                                    min="0"
                                                    max="10"
+                                                   step="1"
                                                    aria-label="Placer ${day}"
                                                    value="${escapeHtml(action.placer[day])}"
-                                                   onchange="updateValue('${escapeHtml(action.id)}', 'placer', '${day}', this.value)">
+                                                   onchange="updateValue('${escapeHtml(action.id)}', 'placer', '${day}', this.value, this)">
                                         </td>
                                     `).join('')}
                                     <td class="comentarios-col" rowspan="2">
@@ -1556,9 +1629,10 @@
                                             <input type="number"
                                                    min="0"
                                                    max="10"
+                                                   step="1"
                                                    aria-label="Logro ${day}"
                                                    value="${escapeHtml(action.logro[day])}"
-                                                   onchange="updateValue('${escapeHtml(action.id)}', 'logro', '${day}', this.value)">
+                                                   onchange="updateValue('${escapeHtml(action.id)}', 'logro', '${day}', this.value, this)">
                                         </td>
                                     `).join('')}
                                 </tr>
@@ -1596,7 +1670,7 @@
             }
         }
 
-        function updateValue(id, type, day, value) {
+        function updateValue(id, type, day, value, inputElement) {
             const validDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
             const validTypes = ['placer', 'logro'];
 
@@ -1606,14 +1680,40 @@
                 return;
             }
 
-            // Validar valor (vacío o número 0-10)
+            // Validar y clampear valor (vacío o número 0-10)
+            let wasClamped = false;
+            let wasModified = false;
             if (value !== '' && value !== null && value !== undefined) {
-                const numValue = parseInt(value, 10);
-                if (isNaN(numValue) || numValue < 0 || numValue > 10) {
-                    console.warn('updateValue: valor fuera de rango 0-10');
-                    return;
+                const originalInput = parseFloat(value);
+                let numValue = originalInput;
+
+                // Truncar decimales
+                numValue = Math.trunc(numValue);
+                const wasTruncated = originalInput !== numValue;
+
+                if (isNaN(numValue)) {
+                    value = '';
+                    wasModified = true;
+                } else {
+                    // Clampear al rango 0-10
+                    const beforeClamp = numValue;
+                    numValue = Math.max(0, Math.min(10, numValue));
+                    wasClamped = beforeClamp !== numValue;
+                    wasModified = wasTruncated || wasClamped;
+                    value = numValue;
                 }
-                value = numValue;
+            }
+
+            // Actualizar input si fue modificado (truncado o clampeado)
+            if (wasModified && inputElement) {
+                inputElement.value = value;
+                // Mostrar feedback visual solo si fue clampeado (fuera de rango)
+                if (wasClamped) {
+                    inputElement.classList.add('input-invalid');
+                    setTimeout(() => {
+                        inputElement.classList.remove('input-invalid');
+                    }, 2000);
+                }
             }
 
             const week = getCurrentWeek();

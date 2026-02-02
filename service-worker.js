@@ -1,4 +1,4 @@
-const CACHE_NAME = 'activacion-conductual-v15';
+const CACHE_NAME = 'activacion-conductual-v16';
 const urlsToCache = [
   '/behavioral-activation/',
   '/behavioral-activation/index.html',
